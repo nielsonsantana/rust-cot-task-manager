@@ -1,10 +1,10 @@
-// src/main.rs
-
 mod api;
 mod cqrs;
 mod models;
 mod migrations;
 
+use cot::openapi::swagger_ui::SwaggerUi;
+use cot::router::method::openapi::{api_post, api_get, api_delete, api_patch};
 use cot::auth::db::DatabaseUserApp;
 use cot::cli::CliMetadata;
 use cot::db::migrations::SyncDynMigration;
@@ -33,18 +33,22 @@ impl App for TaskManagerApp {
     }
 
     fn migrations(&self) -> Vec<Box<SyncDynMigration>> {
-        crate::migrations::get_migrations()
+        cot::db::migrations::wrap_migrations(migrations::MIGRATIONS)
     }
 
     fn router(&self) -> Router {
         Router::with_urls([
             Route::with_handler_and_name("/", index, "index"),
-            Route::with_handler_and_name("/api/auth/otp/send", api::auth::send_otp, "send_otp"),
-            Route::with_handler_and_name("/api/auth/otp/verify", api::auth::verify_otp, "verify_otp"),
-            Route::with_handler_and_name("/api/tasks", api::tasks::list_tasks, "list_tasks"),
-            Route::with_handler_and_name("/api/tasks/create", api::tasks::create_task, "create_task"),
-            Route::with_handler_and_name("/api/tasks/{id}/update", api::tasks::update_task, "update_task"),
-            Route::with_handler_and_name("/api/tasks/{id}/delete", api::tasks::delete_task, "delete_task"),
+            
+            // Auth Resources
+            Route::with_handler_and_name("/api/auth/otp", api::auth::send_otp, "send_otp"),
+            Route::with_handler_and_name("/api/auth/session", api::auth::verify_otp, "verify_otp"),
+            
+            // Task Resources - Handlers now satisfy AsApiOperation because inner types implement JsonSchema
+            Route::with_api_handler_and_name("/api/tasks", api_get(api::tasks::list_tasks), "list_tasks"),
+            Route::with_api_handler_and_name("/api/tasks", api_post(api::tasks::create_task), "create_task"),
+            Route::with_api_handler_and_name("/api/tasks/{id}", api_patch(api::tasks::update_task), "update_task"),
+            Route::with_api_handler_and_name("/api/tasks/{id}", api_delete(api::tasks::delete_task), "delete_task"),
         ])
     }
 }
@@ -60,6 +64,7 @@ impl Project for TaskManagerProject {
         apps.register_with_views(TaskManagerApp, "");
         apps.register(DatabaseUserApp::new());
         apps.register(SessionApp::new());
+        apps.register_with_views(SwaggerUi::new(), "/swagger");
     }
 
     fn middlewares(

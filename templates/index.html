@@ -72,7 +72,7 @@
 
                 async sendOtp() {
                     if (!this.email) return;
-                    await fetch('/api/auth/otp/send', {
+                    await fetch('/api/auth/otp', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ email: this.email })
@@ -81,7 +81,7 @@
                 },
 
                 async verifyOtp() {
-                    let res = await fetch('/api/auth/otp/verify', {
+                    let res = await fetch('/api/auth/session', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ email: this.email, code: this.otpCode })
@@ -114,7 +114,7 @@
 
                 async createTask() {
                     if (!this.newTaskTitle.trim()) return;
-                    await fetch('/api/tasks/create', {
+                    await fetch('/api/tasks', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ title: this.newTaskTitle })
@@ -124,8 +124,8 @@
                 },
 
                 async updateTaskStatus(id, status) {
-                    await fetch(`/api/tasks/${id}/update`, {
-                        method: 'POST', 
+                    await fetch(`/api/tasks/${id}`, {
+                        method: 'PATCH', 
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ status })
                     });
@@ -133,7 +133,7 @@
                 },
 
                 async deleteTask(id) {
-                    await fetch(`/api/tasks/${id}/delete`, { method: 'POST' });
+                    await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
                     this.fetchTasks();
                 }
             }

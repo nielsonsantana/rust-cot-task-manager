@@ -1,5 +1,3 @@
-// src/api.rs
-
 pub mod auth {
     use cot::db::Database;
     use cot::json::Json;
@@ -24,7 +22,7 @@ pub mod auth {
             Ok(user) => {
                 let json = serde_json::to_string(&user).unwrap();
                 Ok(Response::builder()
-                    .status(200)
+                    .status(201)
                     .header("Content-Type", "application/json")
                     .body(Body::from(json))
                     .unwrap())
@@ -72,7 +70,14 @@ pub mod tasks {
 
     pub async fn create_task(db: Database, req: Json<CreateTaskRequest>) -> cot::Result<Response> {
         match create_task_command(&db, MOCK_USER_ID, &req.0.title).await {
-            Ok(_) => Ok(Response::builder().status(201).body(Body::empty()).unwrap()),
+            Ok(task) => {
+                let json = serde_json::to_string(&task).unwrap();
+                Ok(Response::builder()
+                    .status(201)
+                    .header("Content-Type", "application/json")
+                    .body(Body::from(json))
+                    .unwrap())
+            },
             Err(e) => {
                 error!("[TASK_CREATE_FAILURE] Failed for user {}: {}", MOCK_USER_ID, e);
                 Ok(Response::builder().status(500).body(Body::empty()).unwrap())
