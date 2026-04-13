@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rust Task Manager (Cot Project)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 h-screen font-sans">
+    
+    <div x-data="taskApp()" class="container mx-auto max-w-2xl p-6 h-full">
+        
+        <div x-show="!isAuthenticated" class="bg-white p-8 rounded-lg shadow-md mt-20">
+            <h1 class="text-2xl font-bold mb-6 text-center">Login</h1>
+            
+            <div x-show="!otpSent">
+                <input x-model="email" type="email" placeholder="Enter your email" class="w-full p-3 border rounded mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button @click="sendOtp" class="w-full bg-blue-600 text-white p-3 rounded font-semibold hover:bg-blue-700">Send Magic Code</button>
+            </div>
+
+            <div x-show="otpSent">
+                <p class="mb-4 text-sm text-gray-600">Enter the code sent to <span x-text="email" class="font-bold"></span></p>
+                <input x-model="otpCode" type="text" placeholder="123456" class="w-full p-3 border rounded mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button @click="verifyOtp" class="w-full bg-green-600 text-white p-3 rounded font-semibold hover:bg-green-700">Verify & Login</button>
+            </div>
+        </div>
+
+        <div x-show="isAuthenticated" class="bg-white p-6 rounded-lg shadow-md h-full flex flex-col">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold">My Tasks</h1>
+                <button @click="logout" class="text-sm text-red-600 hover:underline">Logout</button>
+            </div>
+
+            <div class="flex mb-6">
+                <input x-model="newTaskTitle" @keydown.enter="createTask" type="text" placeholder="What needs to be done?" class="flex-1 p-3 border rounded-l focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button @click="createTask" class="bg-blue-600 text-white px-6 rounded-r font-semibold hover:bg-blue-700">Add</button>
+            </div>
+
+            <div class="flex space-x-4 mb-4 text-sm">
+                <button @click="filter = 'All'" :class="{'font-bold text-blue-600': filter === 'All'}">All</button>
+                <button @click="filter = 'Pending'" :class="{'font-bold text-blue-600': filter === 'Pending'}">Pending</button>
+                <button @click="filter = 'Completed'" :class="{'font-bold text-blue-600': filter === 'Completed'}">Completed</button>
+            </div>
+
+            <ul class="flex-1 overflow-y-auto space-y-3">
+                <template x-for="task in filteredTasks" :key="task.id">
+                    <li class="flex items-center justify-between p-4 border rounded hover:bg-gray-50">
+                        <div class="flex items-center space-x-3">
+                            <input type="checkbox" :checked="task.status === 'Completed'" @change="updateTaskStatus(task.id, $event.target.checked ? 'Completed' : 'Pending')" class="h-5 w-5 text-blue-600">
+                            <span x-text="task.title" :class="{'line-through text-gray-400': task.status === 'Completed'}"></span>
+                        </div>
+                        <button @click="deleteTask(task.id)" class="text-red-500 hover:text-red-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </button>
+                    </li>
+                </template>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function taskApp() {
+            return {
+                isAuthenticated: false,
+                email: '',
+                otpSent: false,
+                otpCode: '',
+                tasks: [],
+                newTaskTitle: '',
+                filter: 'All',
+
+                async sendOtp() {
+                    if (!this.email) return;
+                    await fetch('/api/auth/otp/send', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: this.email })
+                    });
+                    this.otpSent = true;
+                },
+
+                async verifyOtp() {
+                    let res = await fetch('/api/auth/otp/verify', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: this.email, code: this.otpCode })
+                    });
+                    if (res.ok) {
+                        this.isAuthenticated = true;
+                        this.fetchTasks();
+                    } else {
+                        alert("Invalid code");
+                    }
+                },
+
+                logout() {
+                    this.isAuthenticated = false;
+                    this.otpSent = false;
+                    this.email = '';
+                    this.otpCode = '';
+                    this.tasks = [];
+                },
+
+                async fetchTasks() {
+                    let res = await fetch('/api/tasks');
+                    this.tasks = await res.json();
+                },
+
+                get filteredTasks() {
+                    if (this.filter === 'All') return this.tasks;
+                    return this.tasks.filter(t => t.status === this.filter);
+                },
+
+                async createTask() {
+                    if (!this.newTaskTitle.trim()) return;
+                    await fetch('/api/tasks/create', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ title: this.newTaskTitle })
+                    });
+                    this.newTaskTitle = '';
+                    this.fetchTasks();
+                },
+
+                async updateTaskStatus(id, status) {
+                    await fetch(`/api/tasks/${id}/update`, {
+                        method: 'POST', 
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ status })
+                    });
+                    this.fetchTasks();
+                },
+
+                async deleteTask(id) {
+                    await fetch(`/api/tasks/${id}/delete`, { method: 'POST' });
+                    this.fetchTasks();
+                }
+            }
+        }
+    </script>
+</body>
+</html>
