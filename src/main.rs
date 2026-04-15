@@ -44,11 +44,11 @@ impl App for TaskManagerApp {
             Route::with_handler_and_name("/api/auth/otp", api::auth::send_otp, "send_otp"),
             Route::with_handler_and_name("/api/auth/session", api::auth::verify_otp, "verify_otp"),
             
-            // Task Resources - Handlers now satisfy AsApiOperation because inner types implement JsonSchema
+            // Task Resources - Handlers explicitly mapped to distinct paths to avoid 405 shadowing
             Route::with_api_handler_and_name("/api/tasks", api_get(api::tasks::list_tasks), "list_tasks"),
-            Route::with_api_handler_and_name("/api/tasks", api_post(api::tasks::create_task), "create_task"),
-            Route::with_api_handler_and_name("/api/tasks/{id}", api_patch(api::tasks::update_task), "update_task"),
-            Route::with_api_handler_and_name("/api/tasks/{id}", api_delete(api::tasks::delete_task), "delete_task"),
+            Route::with_api_handler_and_name("/api/tasks/create", api_post(api::tasks::create_task), "create_task"),
+            Route::with_api_handler_and_name("/api/tasks/{id}/update", api_patch(api::tasks::update_task), "update_task"),
+            Route::with_api_handler_and_name("/api/tasks/{id}/delete", api_delete(api::tasks::delete_task), "delete_task"),
         ])
     }
 }

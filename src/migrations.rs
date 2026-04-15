@@ -7,16 +7,3 @@ pub mod m_0001_initial;
 pub const MIGRATIONS: &[&::cot::db::migrations::SyncDynMigration] = &[
     &m_0001_initial::Migration,
 ];
-
-// // ../../app-task-manager/src/migrations.rs
-
-// pub mod m_0001_initial;
-
-// use cot::db::migrations::SyncDynMigration;
-
-// /// Returns the list of migrations for the current app, boxed for the App trait.
-// pub fn get_migrations() -> Vec<Box<SyncDynMigration>> {
-//     vec![
-//         Box::new(m_0001_initial::Migration),
-//     ]
-// }
