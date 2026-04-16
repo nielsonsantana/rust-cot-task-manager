@@ -11,6 +11,10 @@
 <body class="bg-gray-100 text-gray-800 h-screen font-sans">
     
     <div x-data="taskApp()" class="container mx-auto max-w-2xl p-6 h-full">
+
+        <div class="text-center mb-6">
+            <h1 class="text-3xl font-bold text-gray-900">Cot Task Manager</h1>
+        </div>
         
         <template x-if="!isAuthenticated">
         <div x-show="!isAuthenticated" class="bg-white p-8 rounded-lg shadow-md mt-20">

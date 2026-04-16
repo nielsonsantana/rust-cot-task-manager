@@ -1,0 +1,5 @@
+hello_user: "Bem-vindo de volta, %{name}!"
+tasks_title: "Minhas Tarefas"
+logout: "Sair"
+add_task: "Adicionar"
+placeholder_task: "O que precisa ser feito?"

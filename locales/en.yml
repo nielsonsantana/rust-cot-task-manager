@@ -1,0 +1,5 @@
+hello_user: "Welcome back, %{name}!"
+tasks_title: "My Tasks"
+logout: "Logout"
+add_task: "Add"
+placeholder_task: "What needs to be done?"

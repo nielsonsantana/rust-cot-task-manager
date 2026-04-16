@@ -1,3 +1,4 @@
+mod i18n_utils;
 mod api_auth;
 mod api_tasks;
 mod cqrs;
@@ -6,6 +7,9 @@ mod migrations;
 mod admin;
 mod auth_extractor;
 
+rust_i18n::i18n!("locales", fallback = "en");
+
+use cot::Template;
 use async_trait::async_trait;
 use cot::admin::{AdminApp, AdminModelManager, DefaultAdminModelManager};
 use cot::openapi::swagger_ui::SwaggerUi;
@@ -15,21 +19,24 @@ use cot::cli::CliMetadata;
 use cot::db::migrations::SyncDynMigration;
 use cot::middleware::{AuthMiddleware, LiveReloadMiddleware, SessionMiddleware};
 use cot::project::{MiddlewareContext, RegisterAppsContext, RootHandler, RootHandlerBuilder};
-use cot::router::{Route, Router};
+use cot::router::{Route, Router, Urls};
+use cot::html::Html;
 use cot::static_files::StaticFilesMiddleware;
 use cot::session::db::SessionApp;
 use cot::{App, AppBuilder, Project, ProjectContext};
-use cot::response::{Response, ResponseExt};
-use cot::Body;
 
-async fn index() -> cot::Result<Response> {
-    Ok(Response::builder()
-        .status(200)
-        .header("Content-Type", "text/html")
-        .body(Body::from(include_str!("../templates/index.html")))
-        .unwrap())
+#[derive(Template)]
+#[template(path = "index.html")]
+struct IndexTemplate<'a> {
+    #[warn(dead_code)]
+    urls: &'a Urls,
 }
 
+async fn index(urls: Urls) -> cot::Result<Html> {
+    let template = IndexTemplate { urls: &urls };
+
+    Ok(Html::new(template.render()?))
+}
 
 struct TaskManagerApp;
 
