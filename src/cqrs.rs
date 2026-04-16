@@ -1,20 +1,24 @@
 use crate::models::{Otp, Task, User};
 use cot::db::{Database, Model, query};
 use uuid::Uuid;
+use chrono::{Duration, Utc};
 
 // --- COMMANDS --- //
 
 pub async fn send_otp_command(db: &Database, email: &str) -> Result<(), String> {
-    let mock_code = "123456"; 
+    let mock_code = "123456";
+    let expires_at = Utc::now() + Duration::seconds(60 * 3);
     let otp_record = query!(Otp, $email == email).get(db).await.map_err(|e| e.to_string())?; 
     
     if let Some(mut record) = otp_record {
         record.code = mock_code.to_string();
+        record.expires_at = expires_at;
         record.save(db).await.map_err(|e| e.to_string())?;
     } else {
         let mut new_otp = Otp {
             email: email.to_string(),
             code: mock_code.to_string(),
+            expires_at,
         };
         new_otp.save(db).await.map_err(|e| e.to_string())?;
     }
@@ -26,8 +30,12 @@ pub async fn verify_otp_command(db: &Database, email: &str, code: &str) -> Resul
     let otp_record = query!(Otp, $email == email).get(db).await.map_err(|e| e.to_string())?; 
 
     if let Some(record) = otp_record {
+        if record.expires_at < Utc::now() {
+            query!(Otp, $email == email).delete(db).await.map_err(|e| e.to_string())?;
+            return Err("OTP expired".to_string());
+        }
+
         if record.code == code {
-            // Executing deletion on the query builder instead of the instance
             query!(Otp, $email == email).delete(db).await.map_err(|e| e.to_string())?;
             
             let user = query!(User, $email == email).get(db).await.map_err(|e| e.to_string())?;
@@ -71,7 +79,6 @@ pub async fn update_task_command(db: &Database, task_id: &str, status: &str) -> 
 }
 
 pub async fn delete_task_command(db: &Database, task_id: &str) -> Result<(), String> {
-    // Executing deletion on the query builder instead of the instance
     query!(Task, $id == task_id).delete(db).await.map_err(|e| e.to_string())?;
     Ok(())
 }

@@ -23,6 +23,8 @@ pub mod auth {
             Err(e) => {
                 if e == "Invalid OTP" {
                     StatusCode::UNAUTHORIZED.into_response()
+                } else if e == "OTP expired" {
+                    StatusCode::UNAUTHORIZED.with_body("OTP expired".to_string()).into_response()
                 } else {
                     error!("[OTP_VERIFY_FAILURE] Internal error for {}: {}", req.0.email, e);
                     StatusCode::INTERNAL_SERVER_ERROR.into_response()

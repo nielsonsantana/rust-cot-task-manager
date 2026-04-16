@@ -18,7 +18,7 @@
             
             <div x-show="!otpSent">
                 <input x-model="email" @keydown.enter="sendOtp" type="email" placeholder="Enter your email" class="w-full p-3 border rounded mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <button @click="sendOtp" class="w-full bg-blue-600 text-white p-3 rounded font-semibold hover:bg-blue-700">Send Magic Code</button>
+                <button @click="sendOtp" class="w-full bg-blue-600 text-white p-3 rounded font-semibold hover:bg-blue-700">Send Access Code</button>
             </div>
 
             <div x-show="otpSent">

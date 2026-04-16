@@ -1,8 +1,10 @@
+// src/models.rs
 use cot::admin::AdminModel;
 use cot::form::Form;
 use cot::db::model;
 use serde::{Deserialize, Serialize};
 use schemars::JsonSchema;
+use chrono::{DateTime, Utc};
 
 // --- DOMAIN MODELS (Cot ORM) --- //
 
@@ -21,6 +23,8 @@ pub struct Otp {
     #[model(primary_key)]
     pub email: String,
     pub code: String,
+    #[schemars(with = "String")]
+    pub expires_at: DateTime<Utc>,
 }
 
 #[model]
