@@ -3,7 +3,7 @@ pub mod auth {
     use cot::json::Json;
     use cot::response::{Response, IntoResponse};
     use cot::StatusCode;
-    use crate::models::{SendOtpRequest, VerifyOtpRequest};
+    use crate::models::{SendOtpRequest, VerifyOtpRequest, UserResponse};
     use crate::cqrs::{send_otp_command, verify_otp_command};
     use log::error;
 
@@ -19,7 +19,10 @@ pub mod auth {
 
     pub async fn verify_otp(db: Database, req: Json<VerifyOtpRequest>) -> cot::Result<Response> {
         match verify_otp_command(&db, &req.0.email, &req.0.code).await {
-            Ok(user) => Json(user).with_status(StatusCode::CREATED).into_response(),
+            Ok(_) => {
+                let res = UserResponse { username: req.0.email.clone() };
+                Json(res).with_status(StatusCode::CREATED).into_response()
+            },
             Err(e) => {
                 if e == "Invalid OTP" {
                     StatusCode::UNAUTHORIZED.into_response()

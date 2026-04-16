@@ -1,4 +1,5 @@
-use crate::models::{Otp, Task, User};
+use crate::models::{Otp, Task};
+use cot::auth::db::DatabaseUser;
 use cot::db::{Database, Model, query};
 use uuid::Uuid;
 use chrono::{Duration, Utc};
@@ -26,7 +27,7 @@ pub async fn send_otp_command(db: &Database, email: &str) -> Result<(), String> 
     Ok(())
 }
 
-pub async fn verify_otp_command(db: &Database, email: &str, code: &str) -> Result<User, String> {
+pub async fn verify_otp_command(db: &Database, email: &str, code: &str) -> Result<DatabaseUser, String> {
     let otp_record = query!(Otp, $email == email).get(db).await.map_err(|e| e.to_string())?; 
 
     if let Some(record) = otp_record {
@@ -38,16 +39,17 @@ pub async fn verify_otp_command(db: &Database, email: &str, code: &str) -> Resul
         if record.code == code {
             query!(Otp, $email == email).delete(db).await.map_err(|e| e.to_string())?;
             
-            let user = query!(User, $email == email).get(db).await.map_err(|e| e.to_string())?;
+            let user = DatabaseUser::get_by_username(db, email).await.map_err(|e| e.to_string())?;
 
             if let Some(existing_user) = user {
                 return Ok(existing_user);
             } else {
-                let mut new_user = User {
-                    id: Uuid::new_v4().to_string(),
-                    email: email.to_string(),
-                };
-                new_user.save(db).await.map_err(|e| e.to_string())?;
+                let temp_pass = Uuid::new_v4().to_string();
+                DatabaseUser::create_user(db, email, temp_pass).await.map_err(|e| e.to_string())?;
+                let new_user = DatabaseUser::get_by_username(db, email)
+                    .await
+                    .map_err(|e| e.to_string())?
+                    .ok_or_else(|| "Failed to retrieve created user".to_string())?;
                 return Ok(new_user);
             }
         }

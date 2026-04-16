@@ -49,7 +49,6 @@ impl App for TaskManagerApp {
 
     fn admin_model_managers(&self) -> Vec<Box<dyn AdminModelManager>> {
         vec![
-            Box::new(DefaultAdminModelManager::<models::User>::new()),
             Box::new(DefaultAdminModelManager::<models::Task>::new())
         ]
     }

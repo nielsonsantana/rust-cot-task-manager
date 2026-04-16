@@ -1,4 +1,3 @@
-// src/models.rs
 use cot::admin::AdminModel;
 use cot::form::Form;
 use cot::db::model;
@@ -7,15 +6,6 @@ use schemars::JsonSchema;
 use chrono::{DateTime, Utc};
 
 // --- DOMAIN MODELS (Cot ORM) --- //
-
-#[model]
-#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema, Form, AdminModel)]
-pub struct User {
-    #[model(primary_key)]
-    pub id: String,
-    #[model(unique)]
-    pub email: String,
-}
 
 #[model]
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
@@ -58,4 +48,11 @@ pub struct CreateTaskRequest {
 #[derive(Deserialize, JsonSchema)]
 pub struct UpdateTaskRequest {
     pub status: Option<String>,
+}
+
+// --- RESPONSE MODELS --- //
+
+#[derive(Serialize, JsonSchema)]
+pub struct UserResponse {
+    pub username: String,
 }
