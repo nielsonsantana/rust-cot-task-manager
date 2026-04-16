@@ -76,7 +76,9 @@
                 filter: 'All',
 
                 init(){
-                    fetchTasks();
+                    if(this.isAuthenticated){
+                        this.fetchTasks();
+                    }
                 },
 
                 async sendOtp() {

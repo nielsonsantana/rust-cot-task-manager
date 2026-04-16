@@ -55,4 +55,13 @@ pub struct UpdateTaskRequest {
 #[derive(Serialize, JsonSchema)]
 pub struct UserResponse {
     pub username: String,
+    pub user_id: String,
+}
+
+// --- SESSION DATA --- //
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct SessionUserData {
+    pub user_id: String,
+    pub email: String,
 }

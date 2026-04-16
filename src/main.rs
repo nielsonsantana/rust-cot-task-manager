@@ -4,6 +4,7 @@ mod cqrs;
 mod models;
 mod migrations;
 mod admin;
+mod auth_extractor;
 
 use async_trait::async_trait;
 use cot::admin::{AdminApp, AdminModelManager, DefaultAdminModelManager};
@@ -65,7 +66,7 @@ impl App for TaskManagerApp {
             Route::with_handler_and_name("/api/auth/otp", api_auth::auth::send_otp, "send_otp"),
             Route::with_handler_and_name("/api/auth/session", api_auth::auth::verify_otp, "verify_otp"),
             
-            // Task Resources - Handlers explicitly mapped to distinct paths to avoid 405 shadowing
+            // Task Resources - Using AuthenticatedUser extractor for isolation
             Route::with_api_handler_and_name("/api/tasks", api_get(api_tasks::tasks::list_tasks), "list_tasks"),
             Route::with_api_handler_and_name("/api/tasks/create", api_post(api_tasks::tasks::create_task), "create_task"),
             Route::with_api_handler_and_name("/api/tasks/{id}/update", api_patch(api_tasks::tasks::update_task), "update_task"),
