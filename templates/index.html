@@ -10,8 +10,9 @@
 </head>
 <body class="bg-gray-100 text-gray-800 h-screen font-sans">
     
-    <div x-data="taskApp()" x-init="init()" class="container mx-auto max-w-2xl p-6 h-full">
+    <div x-data="taskApp()" class="container mx-auto max-w-2xl p-6 h-full">
         
+        <template x-if="!isAuthenticated">
         <div x-show="!isAuthenticated" class="bg-white p-8 rounded-lg shadow-md mt-20">
             <h1 class="text-2xl font-bold mb-6 text-center">Login</h1>
             
@@ -26,7 +27,9 @@
                 <button @click="verifyOtp" class="w-full bg-green-600 text-white p-3 rounded font-semibold hover:bg-green-700">Verify & Login</button>
             </div>
         </div>
+        </template>
 
+        <template x-if="isAuthenticated">
         <div x-show="isAuthenticated" class="bg-white p-6 rounded-lg shadow-md h-full flex flex-col">
             <div class="flex justify-between items-center mb-6">
                 <h1 class="text-2xl font-bold">My Tasks</h1>
@@ -58,6 +61,7 @@
                 </template>
             </ul>
         </div>
+        </template>
     </div>
 
     <script>
