@@ -33,7 +33,10 @@
         <div x-show="isAuthenticated" class="bg-white p-6 rounded-lg shadow-md h-full flex flex-col">
             <div class="flex justify-between items-center mb-6">
                 <h1 class="text-2xl font-bold">My Tasks</h1>
-                <button @click="logout" class="text-sm text-red-600 hover:underline">Logout</button>
+                <div class="flex items-center space-x-4">
+                    <span x-show="userEmail" x-text="userEmail" class="text-sm text-gray-600"></span>
+                    <button @click="logout" class="text-sm text-red-600 hover:underline">Logout</button>
+                </div>
             </div>
 
             <div class="flex mb-6">
@@ -69,15 +72,28 @@
             return {
                 isAuthenticated: Alpine.$persist(false),
                 email: '',
+                userEmail: '',
                 otpSent: false,
                 otpCode: '',
                 tasks: [],
                 newTaskTitle: '',
                 filter: 'All',
 
-                init(){
+                async init(){
                     if(this.isAuthenticated){
-                        this.fetchTasks();
+                        await this.checkSession();
+                    }
+                },
+
+                async checkSession() {
+                    let res = await fetch('/api/auth/me');
+                    if (res.ok) {
+                        let data = await res.json();
+                        this.userEmail = data.email;
+                        await this.fetchTasks();
+                    } else {
+                        this.isAuthenticated = false;
+                        this.userEmail = '';
                     }
                 },
 
@@ -98,8 +114,10 @@
                         body: JSON.stringify({ email: this.email, code: this.otpCode })
                     });
                     if (res.ok) {
+                        let data = await res.json();
                         this.isAuthenticated = true;
-                        this.fetchTasks();
+                        this.userEmail = data.username;
+                        await this.fetchTasks();
                     } else {
                         alert("Invalid code");
                     }
@@ -110,6 +128,7 @@
                     this.otpSent = false;
                     this.email = '';
                     this.otpCode = '';
+                    this.userEmail = '';
                     this.tasks = [];
                 },
 
@@ -131,7 +150,7 @@
                         body: JSON.stringify({ title: this.newTaskTitle })
                     });
                     this.newTaskTitle = '';
-                    this.fetchTasks();
+                    await this.fetchTasks();
                 },
 
                 async updateTaskStatus(id, status) {
@@ -140,12 +159,12 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ status })
                     });
-                    this.fetchTasks();
+                    await this.fetchTasks();
                 },
 
                 async deleteTask(id) {
                     await fetch(`/api/tasks/${id}/delete`, { method: 'DELETE' });
-                    this.fetchTasks();
+                    await this.fetchTasks();
                 }
             }
         }

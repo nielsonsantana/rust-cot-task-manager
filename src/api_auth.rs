@@ -5,7 +5,7 @@ pub mod auth {
     use cot::StatusCode;
     use cot::session::Session;
     use crate::models::{SendOtpRequest, VerifyOtpRequest, UserResponse, SessionUserData};
-    use crate::cqrs::{send_otp_command, verify_otp_command};
+    use crate::cqrs::{send_otp_command, verify_otp_command, get_session_user_query};
     use log::error;
 
     pub async fn send_otp(db: Database, req: Json<SendOtpRequest>) -> cot::Result<Response> {
@@ -56,6 +56,17 @@ pub mod auth {
                     error!("[OTP_VERIFY_FAILURE] Internal error for {}: {}", json_req.0.email, e);
                     StatusCode::INTERNAL_SERVER_ERROR.into_response()
                 }
+            },
+        }
+    }
+
+    pub async fn get_current_user(_db: Database, session: Session) -> cot::Result<Response> {
+        match get_session_user_query(&session).await {
+            Ok(Some(user_data)) => Json(user_data).into_response(),
+            Ok(None) => StatusCode::UNAUTHORIZED.into_response(),
+            Err(e) => {
+                error!("[SESSION_ERROR] Failed to get session user: {}", e);
+                StatusCode::INTERNAL_SERVER_ERROR.into_response()
             },
         }
     }

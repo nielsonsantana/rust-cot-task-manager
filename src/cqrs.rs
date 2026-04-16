@@ -1,4 +1,4 @@
-use crate::models::{Otp, Task};
+use crate::models::{Otp, Task, SessionUserData};
 use cot::auth::db::DatabaseUser;
 use cot::db::{Database, Model, query};
 use uuid::Uuid;
@@ -92,4 +92,23 @@ pub async fn list_user_tasks_query(db: &Database, user_id: &str) -> Result<Vec<T
         .all(db)
         .await
         .map_err(|e| e.to_string())
+}
+
+pub async fn get_session_user_query(session: &cot::session::Session) -> Result<Option<SessionUserData>, String> {
+    let user_id = session.get::<String>("user_id").await
+        .map_err(|e| e.to_string())?
+        .unwrap_or_default();
+    
+    if user_id.is_empty() {
+        return Ok(None);
+    }
+    
+    let email = session.get::<String>("email").await
+        .map_err(|e| e.to_string())?
+        .unwrap_or_default();
+
+    Ok(Some(SessionUserData {
+        user_id,
+        email,
+    }))
 }
