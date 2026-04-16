@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rust Task Manager (Cot Project)</title>
+    <title>{{ rust_i18n::t!("app_title") }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/persist@3.x.x/dist/cdn.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -13,22 +13,22 @@
     <div x-data="taskApp()" class="container mx-auto max-w-2xl p-6 h-full">
 
         <div class="text-center mb-6">
-            <h1 class="text-3xl font-bold text-gray-900">Cot Task Manager</h1>
+            <h1 class="text-3xl font-bold text-gray-900">{{ rust_i18n::t!("app_title") }}</h1>
         </div>
         
         <template x-if="!isAuthenticated">
         <div x-show="!isAuthenticated" class="bg-white p-8 rounded-lg shadow-md mt-20">
-            <h1 class="text-2xl font-bold mb-6 text-center">Login</h1>
+            <h1 class="text-2xl font-bold mb-6 text-center">{{ rust_i18n::t!("login_heading") }}</h1>
             
             <div x-show="!otpSent">
-                <input x-model="email" @keydown.enter="sendOtp" type="email" placeholder="Enter your email" class="w-full p-3 border rounded mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <button @click="sendOtp" class="w-full bg-blue-600 text-white p-3 rounded font-semibold hover:bg-blue-700">Send Access Code</button>
+                <input x-model="email" @keydown.enter="sendOtp" type="email" placeholder="{{ rust_i18n::t!("enter_email") }}" class="w-full p-3 border rounded mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button @click="sendOtp" class="w-full bg-blue-600 text-white p-3 rounded font-semibold hover:bg-blue-700">{{ rust_i18n::t!("send_access_code") }}</button>
             </div>
 
             <div x-show="otpSent">
-                <p class="mb-4 text-sm text-gray-600">Enter the code sent to <span x-text="email" class="font-bold"></span></p>
-                <input x-model="otpCode" @keydown.enter="verifyOtp" type="text" placeholder="123456" class="w-full p-3 border rounded mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <button @click="verifyOtp" class="w-full bg-green-600 text-white p-3 rounded font-semibold hover:bg-green-700">Verify & Login</button>
+                <p class="mb-4 text-sm text-gray-600">{{ rust_i18n::t!("enter_code_sent_to") }} <span x-text="email" class="font-bold"></span></p>
+                <input x-model="otpCode" @keydown.enter="verifyOtp" type="text" placeholder="{{ rust_i18n::t!("code_placeholder") }}" class="w-full p-3 border rounded mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button @click="verifyOtp" class="w-full bg-green-600 text-white p-3 rounded font-semibold hover:bg-green-700">{{ rust_i18n::t!("verify_and_login") }}</button>
             </div>
         </div>
         </template>
@@ -36,22 +36,22 @@
         <template x-if="isAuthenticated">
         <div x-show="isAuthenticated" class="bg-white p-6 rounded-lg shadow-md h-full flex flex-col">
             <div class="flex justify-between items-center mb-6">
-                <h1 class="text-2xl font-bold">My Tasks</h1>
+                <h1 class="text-2xl font-bold">{{ rust_i18n::t!("my_tasks") }}</h1>
                 <div class="flex items-center space-x-4">
                     <span x-show="userEmail" x-text="userEmail" class="text-sm text-gray-600"></span>
-                    <button @click="logout" class="text-sm text-red-600 hover:underline">Logout</button>
+                    <button @click="logout" class="text-sm text-red-600 hover:underline">{{ rust_i18n::t!("logout") }}</button>
                 </div>
             </div>
 
             <div class="flex mb-6">
-                <input x-model="newTaskTitle" @keydown.enter="createTask" type="text" placeholder="What needs to be done?" class="flex-1 p-3 border rounded-l focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <button @click="createTask" class="bg-blue-600 text-white px-6 rounded-r font-semibold hover:bg-blue-700">Add</button>
+                <input x-model="newTaskTitle" @keydown.enter="createTask" type="text" placeholder="{{ rust_i18n::t!("what_needs_to_be_done") }}" class="flex-1 p-3 border rounded-l focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button @click="createTask" class="bg-blue-600 text-white px-6 rounded-r font-semibold hover:bg-blue-700">{{ rust_i18n::t!("add_task") }}</button>
             </div>
 
             <div class="flex space-x-4 mb-4 text-sm">
-                <button @click="filter = 'All'" :class="{'font-bold text-blue-600': filter === 'All'}">All</button>
-                <button @click="filter = 'Pending'" :class="{'font-bold text-blue-600': filter === 'Pending'}">Pending</button>
-                <button @click="filter = 'Completed'" :class="{'font-bold text-blue-600': filter === 'Completed'}">Completed</button>
+                <button @click="filter = 'All'" :class="{'font-bold text-blue-600': filter === 'All'}">{{ rust_i18n::t!("filter_all") }}</button>
+                <button @click="filter = 'Pending'" :class="{'font-bold text-blue-600': filter === 'Pending'}">{{ rust_i18n::t!("filter_pending") }}</button>
+                <button @click="filter = 'Completed'" :class="{'font-bold text-blue-600': filter === 'Completed'}">{{ rust_i18n::t!("filter_completed") }}</button>
             </div>
 
             <ul class="flex-1 overflow-y-auto space-y-3">
@@ -123,7 +123,8 @@
                         this.userEmail = data.username;
                         await this.fetchTasks();
                     } else {
-                        alert("Invalid code");
+                        let err_msg = await res.text();
+                        alert(err_msg || "{{ rust_i18n::t!("invalid_code") }}");
                     }
                 },
 

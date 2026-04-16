@@ -13,7 +13,7 @@ pub mod auth {
             Ok(_) => StatusCode::OK.into_response(),
             Err(e) => {
                 error!("[OTP_SEND_FAILURE] Failed for email {}: {}", req.0.email, e);
-                StatusCode::INTERNAL_SERVER_ERROR.into_response()
+                StatusCode::INTERNAL_SERVER_ERROR.with_body(rust_i18n::t!("internal_error").to_string()).into_response()
             },
         }
     }
@@ -28,17 +28,17 @@ pub mod auth {
                 
                 if session.insert("user_id", user.id().to_string()).await.is_err() {
                     error!("[SESSION_ERROR] Failed to insert user_id");
-                    return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+                    return StatusCode::INTERNAL_SERVER_ERROR.with_body(rust_i18n::t!("internal_error").to_string()).into_response();
                 }
                 
                 if session.insert("email", json_req.0.email.clone()).await.is_err() {
                     error!("[SESSION_ERROR] Failed to insert email");
-                    return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+                    return StatusCode::INTERNAL_SERVER_ERROR.with_body(rust_i18n::t!("internal_error").to_string()).into_response();
                 }
 
                 if session.save().await.is_err() {
                     error!("[SESSION_ERROR] Failed to save session");
-                    return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+                    return StatusCode::INTERNAL_SERVER_ERROR.with_body(rust_i18n::t!("internal_error").to_string()).into_response();
                 }
 
                 let res = UserResponse {
@@ -49,12 +49,12 @@ pub mod auth {
             },
             Err(e) => {
                 if e == "Invalid OTP" {
-                    StatusCode::UNAUTHORIZED.into_response()
+                    StatusCode::UNAUTHORIZED.with_body(rust_i18n::t!("invalid_otp").to_string()).into_response()
                 } else if e == "OTP expired" {
-                    StatusCode::UNAUTHORIZED.with_body("OTP expired".to_string()).into_response()
+                    StatusCode::UNAUTHORIZED.with_body(rust_i18n::t!("otp_expired").to_string()).into_response()
                 } else {
                     error!("[OTP_VERIFY_FAILURE] Internal error for {}: {}", json_req.0.email, e);
-                    StatusCode::INTERNAL_SERVER_ERROR.into_response()
+                    StatusCode::INTERNAL_SERVER_ERROR.with_body(rust_i18n::t!("internal_error").to_string()).into_response()
                 }
             },
         }
@@ -66,7 +66,7 @@ pub mod auth {
             Ok(None) => StatusCode::UNAUTHORIZED.into_response(),
             Err(e) => {
                 error!("[SESSION_ERROR] Failed to get session user: {}", e);
-                StatusCode::INTERNAL_SERVER_ERROR.into_response()
+                StatusCode::INTERNAL_SERVER_ERROR.with_body(rust_i18n::t!("internal_error").to_string()).into_response()
             },
         }
     }
@@ -76,7 +76,7 @@ pub mod auth {
             Ok(_) => StatusCode::OK.into_response(),
             Err(e) => {
                 error!("[SESSION_DESTROY_ERROR] Failed to destroy session: {}", e);
-                StatusCode::INTERNAL_SERVER_ERROR.into_response()
+                StatusCode::INTERNAL_SERVER_ERROR.with_body(rust_i18n::t!("internal_error").to_string()).into_response()
             },
         }
     }

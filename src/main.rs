@@ -1,4 +1,4 @@
-mod i18n_utils;
+mod locale_middleware;
 mod api_auth;
 mod api_tasks;
 mod cqrs;
@@ -24,6 +24,8 @@ use cot::html::Html;
 use cot::static_files::StaticFilesMiddleware;
 use cot::session::db::SessionApp;
 use cot::{App, AppBuilder, Project, ProjectContext};
+
+use locale_middleware::LocaleMiddleware;
 
 #[derive(Template)]
 #[template(path = "index.html")]
@@ -105,6 +107,7 @@ impl Project for TaskManagerProject {
         context: &MiddlewareContext,
     ) -> RootHandler {
         handler
+            .middleware(LocaleMiddleware::with_locales(vec!["pt-BR"]))
             .middleware(StaticFilesMiddleware::from_context(context))
             .middleware(AuthMiddleware::new())
             .middleware(SessionMiddleware::from_context(context)) 
