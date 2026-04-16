@@ -64,8 +64,9 @@ impl App for TaskManagerApp {
             
             // Auth Resources
             Route::with_handler_and_name("/api/auth/otp", api_auth::auth::send_otp, "send_otp"),
-            Route::with_handler_and_name("/api/auth/session", api_auth::auth::verify_otp, "verify_otp"),
+            Route::with_handler_and_name("/api/auth/verify_otp", api_auth::auth::verify_otp, "verify_otp"),
             Route::with_handler_and_name("/api/auth/me", api_auth::auth::get_current_user, "get_current_user"),
+            Route::with_handler_and_name("/api/auth/logout", api_auth::auth::logout, "logout"),
             
             // Task Resources - Using AuthenticatedUser extractor for isolation
             Route::with_api_handler_and_name("/api/tasks", api_get(api_tasks::tasks::list_tasks), "list_tasks"),

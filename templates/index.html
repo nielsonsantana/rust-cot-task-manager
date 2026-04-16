@@ -108,7 +108,7 @@
                 },
 
                 async verifyOtp() {
-                    let res = await fetch('/api/auth/session', {
+                    let res = await fetch('/api/auth/verify_otp', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ email: this.email, code: this.otpCode })
@@ -123,13 +123,19 @@
                     }
                 },
 
-                logout() {
+                async logout() {
+                    try {
+                        await fetch('/api/auth/logout', { method: 'POST' });
+                    } catch (e) {
+                        console.error("Logout request failed:", e);
+                    }
                     this.isAuthenticated = false;
                     this.otpSent = false;
                     this.email = '';
                     this.otpCode = '';
                     this.userEmail = '';
                     this.tasks = [];
+                    window.location.href = "/";
                 },
 
                 async fetchTasks() {

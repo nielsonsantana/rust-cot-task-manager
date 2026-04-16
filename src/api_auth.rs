@@ -70,4 +70,14 @@ pub mod auth {
             },
         }
     }
+
+    pub async fn logout(session: Session) -> cot::Result<Response> {
+        match session.delete().await {
+            Ok(_) => StatusCode::OK.into_response(),
+            Err(e) => {
+                error!("[SESSION_DESTROY_ERROR] Failed to destroy session: {}", e);
+                StatusCode::INTERNAL_SERVER_ERROR.into_response()
+            },
+        }
+    }
 }
