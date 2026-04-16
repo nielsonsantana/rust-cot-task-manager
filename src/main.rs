@@ -1,3 +1,5 @@
+// src/main.rs
+
 mod locale_middleware;
 mod api_auth;
 mod api_tasks;
@@ -25,7 +27,7 @@ use cot::static_files::StaticFilesMiddleware;
 use cot::session::db::SessionApp;
 use cot::{App, AppBuilder, Project, ProjectContext};
 
-use locale_middleware::LocaleMiddleware;
+use locale_middleware::{LocaleMiddleware, LocaleStrategy};
 
 #[derive(Template)]
 #[template(path = "index.html")]
@@ -107,7 +109,14 @@ impl Project for TaskManagerProject {
         context: &MiddlewareContext,
     ) -> RootHandler {
         handler
-            .middleware(LocaleMiddleware::with_locales(vec!["pt-BR"]))
+            .middleware(
+                LocaleMiddleware::with_locales(vec!["en", "pt-BR"])
+                .with_strategy(LocaleStrategy::Path)
+                .with_path_mapping(&[
+                    ("pt", "pt-BR"),
+                ])
+                .with_default_locale("en")
+            )
             .middleware(StaticFilesMiddleware::from_context(context))
             .middleware(AuthMiddleware::new())
             .middleware(SessionMiddleware::from_context(context)) 
