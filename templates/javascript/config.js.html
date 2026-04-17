@@ -1,0 +1,19 @@
+<script>
+window.AppConfig = {
+    urls: {
+        get_current_user: '{{ cot::reverse!(self.urls, "get_current_user")? }}',
+        send_otp: '{{ cot::reverse!(self.urls, "send_otp")? }}',
+        verify_otp: '{{ cot::reverse!(self.urls, "verify_otp")? }}',
+        logout: '{{ cot::reverse!(self.urls, "logout")? }}',
+        list_tasks: '{{ cot::reverse!(self.urls, "list_tasks")? }}',
+        create_task: '{{ cot::reverse!(self.urls, "create_task")? }}',
+        // Templates can still handle placeholders for dynamic IDs
+        update_task: '{{ cot::reverse!(self.urls, "update_task", id="__ID__")? }}',
+        delete_task: '{{ cot::reverse!(self.urls, "delete_task", id="__ID__")? }}'
+    },
+    i18n: {
+        invalid_code: '{{ rust_i18n::t!("invalid_code") }}',
+        app_title: '{{ rust_i18n::t!("app_title") }}'
+    }
+};
+</script>

@@ -1,14 +1,17 @@
+rust_i18n::i18n!("locales", fallback = "en");
+
 mod admin;
-mod locale_middleware;
 mod api_auth;
 mod api_tasks;
 mod cqrs;
 mod models;
 mod migrations;
 mod auth_extractor;
+mod locale_middleware;
 
-rust_i18n::i18n!("locales", fallback = "en");
-
+use http::header;
+use cot::response::Response;
+use cot::static_files::StaticFile;
 use async_trait::async_trait;
 use cot::admin::{AdminApp, AdminModelManager, DefaultAdminModelManager};
 use cot::openapi::swagger_ui::SwaggerUi;
@@ -22,8 +25,9 @@ use cot::router::{Route, Router, Urls};
 use cot::html::Html;
 use cot::static_files::StaticFilesMiddleware;
 use cot::session::db::SessionApp;
-use cot::{App, AppBuilder, Project, ProjectContext};
+use cot::{App, AppBuilder, Project, ProjectContext, static_files};
 use cot::Template;
+use cot::response::IntoResponse;
 
 use locale_middleware::{LocaleMiddleware, LocaleStrategy};
 
@@ -33,10 +37,26 @@ struct IndexTemplate<'a> {
     urls: &'a Urls,
 }
 
+#[derive(Template)]
+#[template(path = "javascript/config.js.html")]
+struct ConfigTemplate<'a> {
+    urls: &'a Urls,
+}
+
 async fn index(urls: Urls) -> cot::Result<Html> {
     let template = IndexTemplate { urls: &urls };
 
     Ok(Html::new(template.render()?))
+}
+
+async fn config_js(urls: Urls) -> cot::Result<impl IntoResponse> {
+    let template = ConfigTemplate { urls: &urls };
+    let body = template.render()?;
+    
+    Ok(Response::new(body.into())
+        .with_header(header::CONTENT_TYPE, "application/javascript")
+        // .with_header(header::CACHE_CONTROL, "public, max-age=3600")
+        .into_response())
 }
 
 struct TaskManagerApp;
@@ -69,6 +89,7 @@ impl App for TaskManagerApp {
     fn router(&self) -> Router {
         Router::with_urls([
             Route::with_handler_and_name("/", index, "index"),
+            Route::with_handler_and_name("/js/config.js", config_js, "config_js"),
             
             // Auth Resources
             Route::with_handler_and_name("/api/auth/otp", api_auth::auth::send_otp, "send_otp"),
@@ -82,6 +103,12 @@ impl App for TaskManagerApp {
             Route::with_api_handler_and_name("/api/tasks/{id}/update", api_patch(api_tasks::tasks::update_task), "update_task"),
             Route::with_api_handler_and_name("/api/tasks/{id}/delete", api_delete(api_tasks::tasks::delete_task), "delete_task"),
         ])
+    }
+
+    fn static_files(&self) -> Vec<StaticFile> {
+        static_files!(
+            "javascript/task-manager.js"
+        )
     }
 }
 
