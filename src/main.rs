@@ -7,7 +7,7 @@ mod cqrs;
 mod models;
 mod migrations;
 mod auth_extractor;
-mod locale_middleware;
+mod middlewares;
 
 use http::header;
 use cot::response::Response;
@@ -29,7 +29,7 @@ use cot::{App, AppBuilder, Project, ProjectContext, static_files};
 use cot::Template;
 use cot::response::IntoResponse;
 
-use locale_middleware::{LocaleMiddleware, LocaleStrategy};
+use middlewares::locale_middleware::{LocaleMiddleware, LocaleStrategy};
 
 #[derive(Template)]
 #[template(path = "index.html")]
