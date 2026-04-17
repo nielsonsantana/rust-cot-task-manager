@@ -34,9 +34,6 @@ impl Default for LocaleMiddleware {
 }
 
 impl LocaleMiddleware {
-    // pub fn new() -> Self {
-    //     Self::default()
-    // }
     pub fn with_locales(locales: Vec<&'static str>) -> Self {
         Self {
             supported_locales: locales.into_iter().map(|s| s.to_string()).collect(),
