@@ -1,15 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ rust_i18n::t!("app_title") }}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/persist@3.x.x/dist/cdn.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-</head>
-<body class="bg-gray-100 text-gray-800 h-screen font-sans">
-    
+{% extends "base.html" %}
+
+{% block content %}
     <div x-data="taskApp()" class="container mx-auto max-w-2xl p-6 h-full">
 
         <div class="text-center mb-6">
@@ -27,7 +18,7 @@
 
             <div x-show="otpSent">
                 <p class="mb-4 text-sm text-gray-600">{{ rust_i18n::t!("enter_code_sent_to") }} <span x-text="email" class="font-bold"></span></p>
-                <input x-model="otpCode" @keydown.enter="verifyOtp" type="text" placeholder="{{ rust_i18n::t!("code_placeholder") }}" class="w-full p-3 border rounded mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input x-mask="999999" x-model="otpCode" @keydown.enter="verifyOtp" type="text" placeholder="{{ rust_i18n::t!("code_placeholder") }}" class="w-full p-3 border rounded mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <button @click="verifyOtp" class="w-full bg-green-600 text-white p-3 rounded font-semibold hover:bg-green-700">{{ rust_i18n::t!("verify_and_login") }}</button>
             </div>
         </div>
@@ -70,7 +61,8 @@
         </div>
         </template>
     </div>
-
+{% endblock %}
+{% block extra_js %}
     <script>
         function taskApp() {
             return {
@@ -90,7 +82,7 @@
                 },
 
                 async checkSession() {
-                    let res = await fetch('/api/auth/me');
+                    let res = await fetch('{{ cot::reverse!(self.urls, "get_current_user")? }}');
                     if (res.ok) {
                         let data = await res.json();
                         this.userEmail = data.email;
@@ -103,7 +95,7 @@
 
                 async sendOtp() {
                     if (!this.email) return;
-                    await fetch('/api/auth/otp', {
+                    await fetch('{{ cot::reverse!(self.urls, "send_otp")? }}', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ email: this.email })
@@ -112,7 +104,7 @@
                 },
 
                 async verifyOtp() {
-                    let res = await fetch('/api/auth/verify_otp', {
+                    let res = await fetch('{{ cot::reverse!(self.urls, "verify_otp")? }}', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ email: this.email, code: this.otpCode })
@@ -130,7 +122,7 @@
 
                 async logout() {
                     try {
-                        await fetch('/api/auth/logout', { method: 'POST' });
+                        await fetch('{{ cot::reverse!(self.urls, "logout")? }}', { method: 'POST' });
                     } catch (e) {
                         console.error("Logout request failed:", e);
                     }
@@ -144,7 +136,7 @@
                 },
 
                 async fetchTasks() {
-                    let res = await fetch('/api/tasks');
+                    let res = await fetch('{{ cot::reverse!(self.urls, "list_tasks")? }}');
                     this.tasks = await res.json();
                 },
 
@@ -155,7 +147,7 @@
 
                 async createTask() {
                     if (!this.newTaskTitle.trim()) return;
-                    await fetch('/api/tasks/create', {
+                    await fetch('{{ cot::reverse!(self.urls, "create_task")? }}', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ title: this.newTaskTitle })
@@ -165,7 +157,9 @@
                 },
 
                 async updateTaskStatus(id, status) {
-                    await fetch(`/api/tasks/${id}/update`, {
+                    const urlTemplate = '{{ cot::reverse!(self.urls, "update_task", id="__TASK_ID__")? }}';
+                    const targetUrl = urlTemplate.replace('__TASK_ID__', encodeURIComponent(id));
+                    await fetch(targetUrl, {
                         method: 'PATCH', 
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ status })
@@ -174,11 +168,12 @@
                 },
 
                 async deleteTask(id) {
-                    await fetch(`/api/tasks/${id}/delete`, { method: 'DELETE' });
+                    const urlTemplate = '{{ cot::reverse!(self.urls, "delete_task", id="__TASK_ID__")? }}';
+                    const targetUrl = urlTemplate.replace('__TASK_ID__', encodeURIComponent(id));
+                    await fetch(targetUrl, { method: 'DELETE' });
                     await this.fetchTasks();
                 }
             }
         }
     </script>
-</body>
-</html>
+{% endblock %}

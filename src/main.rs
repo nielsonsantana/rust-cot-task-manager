@@ -1,17 +1,14 @@
-// src/main.rs
-
+mod admin;
 mod locale_middleware;
 mod api_auth;
 mod api_tasks;
 mod cqrs;
 mod models;
 mod migrations;
-mod admin;
 mod auth_extractor;
 
 rust_i18n::i18n!("locales", fallback = "en");
 
-use cot::Template;
 use async_trait::async_trait;
 use cot::admin::{AdminApp, AdminModelManager, DefaultAdminModelManager};
 use cot::openapi::swagger_ui::SwaggerUi;
@@ -26,13 +23,13 @@ use cot::html::Html;
 use cot::static_files::StaticFilesMiddleware;
 use cot::session::db::SessionApp;
 use cot::{App, AppBuilder, Project, ProjectContext};
+use cot::Template;
 
 use locale_middleware::{LocaleMiddleware, LocaleStrategy};
 
 #[derive(Template)]
 #[template(path = "index.html")]
 struct IndexTemplate<'a> {
-    #[warn(dead_code)]
     urls: &'a Urls,
 }
 
@@ -127,6 +124,5 @@ impl Project for TaskManagerProject {
 
 #[cot::main]
 fn main() -> impl Project {
-    env_logger::init();
     TaskManagerProject
 }

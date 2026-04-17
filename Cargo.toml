@@ -16,3 +16,4 @@ async-trait = "0.1.89"
 chrono = { version = "0.4", features = ["serde"] }
 rust-i18n = "3"
 tower = "0.5.3"
+http = "1.4.0"
