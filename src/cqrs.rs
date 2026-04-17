@@ -3,22 +3,29 @@ use cot::auth::db::DatabaseUser;
 use cot::db::{Database, Model, query};
 use uuid::Uuid;
 use chrono::{Duration, Utc};
+use rand::Rng;
 
 // --- COMMANDS --- //
 
 pub async fn send_otp_command(db: &Database, email: &str) -> Result<(), String> {
-    let mock_code = "123456";
+    // Scope the ThreadRng usage so it is dropped before the .await point.
+    // This prevents the returned Future from becoming !Send.
+    let otp_code = {
+        let mut rng = rand::thread_rng();
+        rng.gen_range(100000..=999999).to_string()
+    };
+    
     let expires_at = Utc::now() + Duration::seconds(60 * 3);
     let otp_record = query!(Otp, $email == email).get(db).await.map_err(|e| e.to_string())?; 
     
     if let Some(mut record) = otp_record {
-        record.code = mock_code.to_string();
+        record.code = otp_code.clone();
         record.expires_at = expires_at;
         record.save(db).await.map_err(|e| e.to_string())?;
     } else {
         let mut new_otp = Otp {
             email: email.to_string(),
-            code: mock_code.to_string(),
+            code: otp_code,
             expires_at,
         };
         new_otp.save(db).await.map_err(|e| e.to_string())?;
@@ -69,19 +76,21 @@ pub async fn create_task_command(db: &Database, user_id: &str, title: &str) -> R
     Ok(task)
 }
 
-pub async fn update_task_command(db: &Database, task_id: &str, status: &str) -> Result<(), String> {
-    let task_opt = query!(Task, $id == task_id).get(db).await.map_err(|e| e.to_string())?;
+pub async fn update_task_command(db: &Database, task_id: &str, user_id: &str, status: &str) -> Result<(), String> {
+    let task_opt = query!(Task, $id == task_id && $user_id == user_id).get(db).await.map_err(|e| e.to_string())?;
 
     if let Some(mut task) = task_opt {
         task.status = status.to_string();
         task.save(db).await.map_err(|e| e.to_string())?;
+    } else {
+        return Err("Task not found or unauthorized".to_string());
     }
     
     Ok(())
 }
 
-pub async fn delete_task_command(db: &Database, task_id: &str) -> Result<(), String> {
-    query!(Task, $id == task_id).delete(db).await.map_err(|e| e.to_string())?;
+pub async fn delete_task_command(db: &Database, task_id: &str, user_id: &str) -> Result<(), String> {
+    query!(Task, $id == task_id && $user_id == user_id).delete(db).await.map_err(|e| e.to_string())?;
     Ok(())
 }
 

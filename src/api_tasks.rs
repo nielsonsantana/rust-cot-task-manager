@@ -47,7 +47,7 @@ pub mod tasks {
         };
 
         if let Some(status) = &req.0.status {
-            if let Err(e) = update_task_command(&db, &id, status).await {
+            if let Err(e) = update_task_command(&db, &id, &auth_user.user_id, status).await {
                 error!("[TASK_UPDATE_FAILURE] Task ID {} for user {}: {}", id, auth_user.user_id, e);
                 return StatusCode::INTERNAL_SERVER_ERROR.into_response();
             }
@@ -61,7 +61,7 @@ pub mod tasks {
             None => return StatusCode::UNAUTHORIZED.into_response(),
         };
 
-        match delete_task_command(&db, &id).await {
+        match delete_task_command(&db, &id, &auth_user.user_id).await {
             Ok(_) => StatusCode::NO_CONTENT.into_response(),
             Err(e) => {
                 error!("[TASK_DELETE_FAILURE] Task ID {} for user {}: {}", id, auth_user.user_id, e);

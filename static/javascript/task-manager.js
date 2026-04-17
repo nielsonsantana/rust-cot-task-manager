@@ -56,7 +56,7 @@ function taskApp() {
 
         async logout() {
             try {
-                await fetch(window.AppConfig.urls.logout, { method: 'POST' });
+                await fetch(window.AppConfig.urls.logout, { method: 'GET' });
             } catch (e) {
                 console.error("Logout request failed:", e);
             }
