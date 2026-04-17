@@ -1,5 +1,5 @@
-secret_key = "aec82285c517e2624a623f04eb5a14497db8ec42c0c8b62fb09db423276c3549"
-environment = "localhost"
+secret_key = "your-production-secret-key-here"
+environment = "production"
 
 [database]
 url = "sqlite://db.sqlite3?mode=rwc"
@@ -8,14 +8,14 @@ url = "sqlite://db.sqlite3?mode=rwc"
 type = "database"
 
 [middlewares]
-live_reload.enabled = true
+live_reload.enabled = false
 
 [static_files]
 rewrite = "query_param"
 cache_timeout = "1year"
 
 [middlewares.session]
-secure = false
+secure = true
 
 [middlewares.session.store]
 type = "database"

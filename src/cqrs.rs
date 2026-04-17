@@ -1,4 +1,5 @@
 use crate::models::{Otp, Task, SessionUserData};
+use crate::config;
 use cot::auth::db::DatabaseUser;
 use cot::db::{Database, Model, query};
 use uuid::Uuid;
@@ -8,18 +9,24 @@ use rand::Rng;
 // --- COMMANDS --- //
 
 pub async fn send_otp_command(db: &Database, email: &str) -> Result<(), String> {
-    // Scope the ThreadRng usage so it is dropped before the .await point.
-    // This prevents the returned Future from becoming !Send.
-    let otp_code = {
-        let mut rng = rand::thread_rng();
-        rng.gen_range(100000..=999999).to_string()
+    // Use mocked code for localhost environment, otherwise generate random
+    let otp_code = if config::is_localhost() {
+        "123456".to_string()
+    } else {
+        // Scope the ThreadRng usage so it is dropped before the .await point.
+        // This prevents the returned Future from becoming !Send.
+        let code = {
+            let mut rng = rand::thread_rng();
+            rng.gen_range(100000..=999999).to_string()
+        };
+        code
     };
     
     let expires_at = Utc::now() + Duration::seconds(60 * 3);
     let otp_record = query!(Otp, $email == email).get(db).await.map_err(|e| e.to_string())?; 
     
     if let Some(mut record) = otp_record {
-        record.code = otp_code.clone();
+        record.code = otp_code;
         record.expires_at = expires_at;
         record.save(db).await.map_err(|e| e.to_string())?;
     } else {
@@ -83,7 +90,7 @@ pub async fn update_task_command(db: &Database, task_id: &str, user_id: &str, st
         task.status = status.to_string();
         task.save(db).await.map_err(|e| e.to_string())?;
     } else {
-        return Err("Task not found or unauthorized".to_string());
+        return Err(rust_i18n::t!("task_not_found_or_unauthorized").to_string());
     }
     
     Ok(())

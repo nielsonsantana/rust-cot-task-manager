@@ -1,10 +1,9 @@
-// src/main.rs
-
 rust_i18n::i18n!("locales", fallback = "en");
 
 mod admin;
 mod api_auth;
 mod api_tasks;
+mod config;
 mod cqrs;
 mod models;
 mod migrations;
